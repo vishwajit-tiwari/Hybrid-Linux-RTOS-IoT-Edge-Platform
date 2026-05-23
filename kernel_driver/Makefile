@@ -1,6 +1,12 @@
 # Makefile for building the project named iot_uart_driver
 
+# final module
 obj-m += iot_uart_driver.o
+
+# internal object composition (-y means these are the objects that make up the final module)
+iot_uart_driver-y := \
+        iot_uart_driver_main.o \
+        parser/frame_parser.o
 
 ifdef ARCH
 # If ARCH is defined, we assume we're cross-compiling and use the appropriate KDIR
