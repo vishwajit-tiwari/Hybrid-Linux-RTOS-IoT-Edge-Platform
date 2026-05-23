@@ -147,7 +147,7 @@ static int iot_release(struct inode *inode, struct file *file) {
 static ssize_t iot_read(struct file *file, char __user *buf, size_t len,
                         loff_t *offset)                         
 {
-   char kbuf[128];
+   char kbuf[FRAME_MAX_SIZE];
    unsigned int copied;
    unsigned int bytes_to_read;
 
@@ -196,7 +196,7 @@ static ssize_t iot_write(struct file *file, const char __user *buf, size_t len,
                          loff_t *offset) {
   pr_info("iot_uart: write called\n");
 
-  char kbuf[128];
+  char kbuf[FRAME_MAX_SIZE];
 
   if (len > sizeof(kbuf)) {
     len = sizeof(kbuf);
