@@ -1,5 +1,10 @@
 # Hybrid Linux–RTOS IoT Edge Platform
 
+![Platform](https://img.shields.io/badge/Platform-ESP32%20%7C%20RaspberryPi-blue)
+![Language](https://img.shields.io/badge/Language-C-green)
+![Kernel](https://img.shields.io/badge/Linux-Kernel%20Driver-red)
+![RTOS](https://img.shields.io/badge/RTOS-FreeRTOS-orange)
+
 M.Tech Project – BITS Pilani WILP
 
 A hybrid embedded IoT edge platform integrating:
@@ -176,3 +181,4 @@ M.Tech – Embedded Systems
 BITS Pilani WILP
 
 LinkedIn: [Vishwajit Kumar Tiwari](https://www.linkedin.com/in/vishwajit-tiwari/)
+GitHub: [github.com/vishwajit-tiwari](https://github.com/vishwajit-tiwari)
