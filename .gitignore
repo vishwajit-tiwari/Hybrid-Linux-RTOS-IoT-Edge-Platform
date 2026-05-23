@@ -1,0 +1,19 @@
+# Kernel build files
+*.o
+*.ko
+*.mod
+*.mod.c
+*.symvers
+modules.order
+Module.symvers
+*.cmd
+
+# Temp files
+*.swp
+*~
+
+# VSCode
+.vscode/
+
+# Logs
+*.log
