@@ -174,3 +174,5 @@ Vishwajit Kumar Tiwari
 
 M.Tech – Embedded Systems  
 BITS Pilani WILP
+
+LinkedIn: [Vishwajit Kumar Tiwari](https://www.linkedin.com/in/vishwajit-tiwari/)
