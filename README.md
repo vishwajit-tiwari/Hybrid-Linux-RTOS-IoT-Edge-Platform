@@ -55,11 +55,10 @@ Cloud Dashboard
 - modular parser architecture
 
 ## Planned Linux-side Features
-- Frame synchronization engine
 - CRC8 / CRC16 / checksum validation
-- validated telemetry buffering
 - user-space telemetry service
 - MQTT cloud publishing
+- telemetry dashboard visualization
 - runtime diagnostics
 
 ---
@@ -104,6 +103,32 @@ Protocol Features:
 
 ---
 
+# Current Linux Driver Runtime Pipeline
+
+Current implemented Linux telemetry flow:
+
+ESP32 UART Stream
+        ↓
+UART RX Kernel Thread
+        ↓
+Frame Synchronization Parser
+        ↓
+Validated Telemetry Frame
+        ↓
+kfifo Buffer
+        ↓
+Character Device (/dev/iot_uart)
+        ↓
+User-space Reader
+
+Example runtime telemetry:
+
+```text
+<T:36.00,I:0.02,V:0.96,P:0.02,M:0>*8BEC
+```
+
+---
+
 # Current Project Status
 
 ## Completed
@@ -111,16 +136,20 @@ Protocol Features:
 - UART communication validation
 - Raspberry Pi UART configuration
 - Linux character driver
-- kfifo buffering
+- UART RX kernel thread
+- frame synchronization parser
+- kfifo validated buffering
 - poll/select support
 - blocking/non-blocking reads
+- safe module unload handling
+- non-blocking UART polling
 - hardware telemetry validation
 
 ## In Progress
-- Frame synchronization engine
 - CRC validation framework
-- telemetry service
+- user-space telemetry service
 - MQTT cloud integration
+- telemetry dashboard visualization
 
 ---
 
