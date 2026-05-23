@@ -1,17 +1,61 @@
 /**
  * @file iot_uart_driver.c
- * @brief A simple Linux kernel module for UART communication
- * @details This module creates a character device that can be used for UART communication
- * in an IoT environment. It provides basic file operations for reading and writing
- * data, and can be extended to include actual UART communication logic.
- * @note This is a basic template and does not include actual UART communication logic.
- *       It is intended for educational purposes and can be extended as needed.
- * @author Vishwajit
- * @date 2026-05-18
- * @version 1.0
- * @copyright 2026 Vishwajit
+ * @brief Hybrid Linux-RTOS IoT UART Character Driver
+ *
+ * @details
+ * Linux kernel character driver for a Hybrid Linux–RTOS IoT Edge Platform.
+ *
+ * This driver provides:
+ * - character device interface
+ * - UART telemetry buffering
+ * - kfifo-based data management
+ * - blocking and non-blocking I/O
+ * - wait queue synchronization
+ * - poll/select asynchronous notification
+ * - telemetry frame processing framework
+ * - configurable integrity validation support
+ *
+ * The driver is designed as a telemetry middleware layer between:
+ * - ESP32 FreeRTOS telemetry producer
+ * - Linux user-space telemetry services
+ *
+ * Intended architecture:
+ *
+ * ESP32 (FreeRTOS)
+ *      ↓ UART Framed Telemetry
+ * Linux UART Driver
+ *      ↓
+ * Frame Synchronization
+ *      ↓
+ * CRC / Checksum Validation
+ *      ↓
+ * kfifo Validated Buffer
+ *      ↓
+ * User-space Telemetry Service
+ *      ↓
+ * MQTT Cloud Publisher
+ *
+ * Features implemented:
+ * - dynamic character device registration
+ * - mutex-protected kfifo buffering
+ * - blocking/non-blocking reads
+ * - poll/select support
+ * - wait queue synchronization
+ * - UART integration framework
+ * - asynchronous kernel thread framework
+ *
+ * @note
+ * The current implementation focuses on stable telemetry transport,
+ * modular parser integration, and Linux-side buffering architecture
+ * for embedded IoT edge systems.
+ *
+ * @author Vishwajit Kumar Tiwari
+ * @date 2026-05-22
+ * @version 2.0
+ *
+ * @copyright
+ * Copyright (c) 2026 Vishwajit Kumar Tiwari
  */
-
 
 #include <linux/module.h>
 #include <linux/kernel.h>
