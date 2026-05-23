@@ -3,10 +3,11 @@
 *.ko
 *.mod
 *.mod.c
+*.order
 *.symvers
-modules.order
-Module.symvers
 *.cmd
+Module.symvers
+modules.order
 
 # Temp files
 *.swp
