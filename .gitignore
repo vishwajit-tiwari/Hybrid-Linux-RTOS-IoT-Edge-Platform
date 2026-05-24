@@ -26,5 +26,8 @@ modules.order
 # Temporary files
 *~
 
+# Telemetry service data
+user_space/telemetry_service
+
 # Screenshots and videos
 screenshots/*.mp4

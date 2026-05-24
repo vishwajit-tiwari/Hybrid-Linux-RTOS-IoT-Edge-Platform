@@ -62,10 +62,15 @@ Cloud Dashboard
 - modular parser architecture
 
 ## Planned Linux-side Features
-- user-space telemetry service
 - MQTT cloud publishing
 - telemetry dashboard visualization
 - runtime diagnostics
+
+## User-space Telemetry Service
+- reads validated telemetry frames from /dev/iot_uart
+- continuous telemetry monitoring
+- userspace driver communication
+- telemetry daemon architecture
 
 ---
 
@@ -168,10 +173,12 @@ Example runtime telemetry:
 - verified ESP32 ↔ Raspberry Pi telemetry streaming
 - CRC16 telemetry integrity verification
 - live framed telemetry reception over ttyAMA0
+- user-space telemetry service
+- kernel-to-user telemetry pipeline
+- live telemetry frame consumption
 
 
 ## In Progress
-- user-space telemetry service
 - MQTT cloud integration
 - telemetry dashboard visualization
 
@@ -244,13 +251,38 @@ Example runtime output:
 
 ```text
 hybrid_iot_platform/
-│
-├── kernel_driver/
-├── user_space/
-├── scripts/
-├── docs/
-├── screenshots/
-└── README.md
+├── kernel_driver
+│   ├── crc
+│   │   ├── checksum.c
+│   │   ├── checksum.o
+│   │   ├── crc16.c
+│   │   ├── crc16.o
+│   │   ├── crc8.c
+│   │   ├── crc8.o
+│   │   ├── integrity.h
+│   │   ├── validator.c
+│   │   └── validator.o
+│   ├── iot_uart_driver.ko
+│   ├── iot_uart_driver_main.c
+│   ├── iot_uart_driver_main.o
+│   ├── iot_uart_driver.mod
+│   ├── iot_uart_driver.mod.c
+│   ├── iot_uart_driver.mod.o
+│   ├── iot_uart_driver.o
+│   ├── Makefile
+│   ├── modules.order
+│   ├── Module.symvers
+│   └── parser
+│       ├── frame_parser.c
+│       ├── frame_parser.h
+│       └── frame_parser.o
+├── README.md
+├── scripts
+│   └── start_demo.sh
+└── user_space
+    ├── Makefile
+    ├── telemetry_service
+    └── telemetry_service.c
 ```
 
 ---
