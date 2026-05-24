@@ -18,6 +18,7 @@ A hybrid embedded IoT edge platform integrating:
 
 # System Architecture
 
+```text
 ESP32 (FreeRTOS)
     ↓ UART Framed Telemetry
 Linux UART Character Driver
@@ -33,6 +34,7 @@ User-space Telemetry Service
 MQTT Publisher
     ↓
 Cloud Dashboard
+```
 
 ---
 
@@ -115,6 +117,7 @@ Protocol Features:
 - UART stream accumulation handling
 - fragmented frame recovery
 - stream-oriented telemetry parsing
+- producer-consumer telemetry buffering model
 
 ---
 
@@ -122,6 +125,7 @@ Protocol Features:
 
 Current implemented Linux telemetry flow:
 
+```text
 ESP32 UART Stream
         ↓
 UART RX Kernel Thread
@@ -135,6 +139,7 @@ kfifo Buffer
 Character Device (/dev/iot_uart)
         ↓
 User-space Reader
+```
 
 Example runtime telemetry:
 
@@ -157,24 +162,41 @@ Example runtime telemetry:
 - poll/select support
 - blocking/non-blocking reads
 - safe module unload handling
-- non-blocking UART polling
+- poll/select-based asynchronous I/O
 - hardware telemetry validation
 - UART hardware configuration validation
 - verified ESP32 ↔ Raspberry Pi telemetry streaming
 - CRC16 telemetry integrity verification
 - live framed telemetry reception over ttyAMA0
 
-## Current progress
-- CRC16 telemetry validation fully operational
-- stream-based UART frame synchronization implemented
-- validated telemetry buffering pipeline operational
-- real-time ESP32 → Linux telemetry reception verified
-- FIFO overflow handling implemented
 
 ## In Progress
 - user-space telemetry service
 - MQTT cloud integration
 - telemetry dashboard visualization
+
+---
+
+# Current Runtime Validation
+
+- CRC16 telemetry validation fully operational
+- stream-based UART frame synchronization implemented
+- validated telemetry buffering pipeline operational
+- real-time ESP32 → Linux telemetry reception verified
+- FIFO overflow handling implemented
+- UART raw-mode runtime stabilization
+
+---
+
+# Engineering Challenges Solved
+
+- UART stream fragmentation handling
+- partial frame reconstruction
+- cross-platform CRC16 compatibility
+- FIFO overflow protection
+- blocking vs non-blocking synchronization
+- UART raw mode stabilization
+- safe kernel thread termination
 
 ---
 
@@ -187,8 +209,11 @@ Automated demo startup script:
 ```
 Actual demo path:
 
+```md
+Run from project root:
+
 ```bash
-hybrid_iot_platform/scripts/start_demo.sh
+./scripts/start_demo.sh
 ```
 
 The script automatically:
@@ -203,6 +228,15 @@ Example runtime output:
 ```text
 <T:30.81,I:0.01,V:0.97,P:0.01,M:0>*606C
 ```
+
+---
+
+# Screenshots
+
+- ESP32 telemetry transmission
+- Linux driver runtime logs
+- validated telemetry stream
+- MQTT telemetry publishing
 
 ---
 
