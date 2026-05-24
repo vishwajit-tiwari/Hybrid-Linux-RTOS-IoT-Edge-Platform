@@ -254,28 +254,15 @@ hybrid_iot_platform/
 ├── kernel_driver
 │   ├── crc
 │   │   ├── checksum.c
-│   │   ├── checksum.o
 │   │   ├── crc16.c
-│   │   ├── crc16.o
 │   │   ├── crc8.c
-│   │   ├── crc8.o
 │   │   ├── integrity.h
-│   │   ├── validator.c
-│   │   └── validator.o
-│   ├── iot_uart_driver.ko
+│   │   └── validator.c
 │   ├── iot_uart_driver_main.c
-│   ├── iot_uart_driver_main.o
-│   ├── iot_uart_driver.mod
-│   ├── iot_uart_driver.mod.c
-│   ├── iot_uart_driver.mod.o
-│   ├── iot_uart_driver.o
 │   ├── Makefile
-│   ├── modules.order
-│   ├── Module.symvers
 │   └── parser
 │       ├── frame_parser.c
-│       ├── frame_parser.h
-│       └── frame_parser.o
+│       └── frame_parser.h
 ├── README.md
 ├── scripts
 │   └── start_demo.sh
