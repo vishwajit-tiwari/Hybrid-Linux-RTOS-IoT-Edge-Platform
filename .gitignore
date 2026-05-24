@@ -1,33 +1,57 @@
-# Kernel build files
+# =========================================
+# Build Artifacts
+# =========================================
+
 *.o
 *.ko
 *.mod
 *.mod.c
+*.mod.o
 *.symvers
 *.order
 *.cmd
+
+# Kernel build directories
+.kernel_versions/
 .tmp_versions/
-Module.symvers
-modules.order
 
-# Temp files
-*.swp
-*~
+# =========================================
+# User-space binaries
+# =========================================
 
-# VSCode
-.vscode/
-
-# Logs
-*.log
-
-# VSCode
-.vscode/
-
-# Temporary files
-*~
-
-# Telemetry service data
 user_space/telemetry_service
 
-# Screenshots and videos
-screenshots/*.mp4
+# =========================================
+# VSCode
+# =========================================
+
+.vscode/
+
+# =========================================
+# Logs
+# =========================================
+
+*.log
+node_red.log
+
+# =========================================
+# Temporary files
+# =========================================
+
+*.swp
+*.swo
+*~
+*.tmp
+
+# =========================================
+# Node-RED
+# =========================================
+
+.node-red/
+
+# =========================================
+# OS generated files
+# =========================================
+
+.DS_Store
+Thumbs.db

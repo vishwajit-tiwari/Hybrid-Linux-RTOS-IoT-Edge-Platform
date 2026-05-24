@@ -4,77 +4,157 @@
 ![Language](https://img.shields.io/badge/Language-C-green)
 ![Kernel](https://img.shields.io/badge/Linux-Kernel%20Driver-red)
 ![RTOS](https://img.shields.io/badge/RTOS-FreeRTOS-orange)
-
-M.Tech Project – BITS Pilani WILP
-
-A hybrid embedded IoT edge platform integrating:
-- ESP32 running FreeRTOS
-- Raspberry Pi 4B running Linux
-- Custom Linux UART character driver
-- UART telemetry framework with CRC validation
-- MQTT-based cloud telemetry pipeline
+![Status](https://img.shields.io/badge/Status-Active-success)
 
 ---
 
-# System Architecture
+## Project Overview
+
+M.Tech Project – BITS Pilani WILP
+
+This project implements a Hybrid Linux–RTOS IoT Edge Platform using:
+
+- ESP32 running FreeRTOS
+- Raspberry Pi 4B running Linux
+- Custom Linux UART Character Driver
+- UART framed telemetry protocol
+- CRC-based frame integrity validation
+- MQTT cloud telemetry publishing
+- Node-RED dashboard visualization
+
+The platform demonstrates:
+
+- hybrid embedded architecture
+- Linux kernel driver development
+- RTOS task management
+- UART middleware design
+- cloud telemetry integration
+- real-time sensor monitoring
+
+---
+
+## Technology Stack
+
+| Domain | Technologies |
+|---|---|
+| RTOS | FreeRTOS |
+| MCU | ESP32 |
+| SBC | Raspberry Pi 4B |
+| Kernel Development | Linux Character Driver |
+| Communication | UART |
+| Integrity Validation | CRC16 / CRC8 |
+| Cloud Protocol | MQTT |
+| Cloud Broker | HiveMQ Cloud |
+| Dashboard | Node-RED |
+| Language | Embedded C |
+
+---
+
+## System Architecture
 
 ```text
 ESP32 (FreeRTOS)
-    ↓ UART Framed Telemetry
-Linux UART Character Driver
+    ↓ UART Telemetry Frames
+Linux UART Driver
     ↓
-Frame Synchronization Engine
+Frame Parser + CRC Validation
     ↓
-CRC / Checksum Validation
+kfifo Buffered Middleware
     ↓
-kfifo Validated Buffer
+User-space MQTT Publisher
     ↓
-User-space Telemetry Service
+HiveMQ Cloud Broker
     ↓
-MQTT Publisher
-    ↓
-Cloud Dashboard
+Node-RED Dashboard
 ```
 
 ---
 
-# Current Features
+## Runtime Data Flow
 
-## ESP32 RTOS Side
-- FreeRTOS multitasking
-- Supervisor-centric runtime architecture
-- DS18B20 temperature sensing
-- INA219 voltage/current/power sensing
-- PIR motion detection
-- UART framed telemetry
-- Configurable CRC integrity framework
-- Task monitoring and graceful degradation
-
-## Linux Kernel Driver
-- Custom Linux character device driver
-- Dynamic device registration
-- kfifo-based buffering
-- mutex synchronization
-- blocking/non-blocking I/O
-- wait queue support
-- poll/select asynchronous I/O
-- UART integration framework
-- modular parser architecture
-
-## Planned Linux-side Features
-- MQTT cloud publishing
-- telemetry dashboard visualization
-- runtime diagnostics
-
-## User-space Telemetry Service
-- reads validated telemetry frames from /dev/iot_uart
-- continuous telemetry monitoring
-- userspace driver communication
-- telemetry daemon architecture
+```text
+DS18B20 / INA219 / PIR Sensors
+              ↓
+        ESP32 FreeRTOS Tasks
+              ↓
+      UART Framed Telemetry
+              ↓
+ Raspberry Pi Linux UART Driver
+              ↓
+ Frame Parsing + CRC Validation
+              ↓
+      kfifo Telemetry Buffer
+              ↓
+     /dev/iot_uart Interface
+              ↓
+   User-space Telemetry Service
+              ↓
+      HiveMQ Cloud Broker
+              ↓
+       Node-RED Dashboard
+```
 
 ---
 
-# Hardware Used
+## Features
+
+### ESP32 RTOS Features
+
+- FreeRTOS multitasking
+- DS18B20 temperature sensing
+- INA219 voltage/current/power sensing
+- PIR motion detection
+- UART telemetry transmission
+- supervisor framework
+- heartbeat monitoring
+
+### Linux Driver Features
+
+- custom Linux character device driver
+- kfifo buffering
+- blocking/non-blocking I/O
+- poll/select support
+- wait queue synchronization
+- UART kernel thread
+- CRC/frame validation
+- stream-oriented telemetry parsing
+- fragmented frame reconstruction
+- producer-consumer telemetry buffering model
+- safe kernel thread termination
+
+### User-space Telemetry Service
+
+- reads validated telemetry frames from `/dev/iot_uart`
+- continuous telemetry monitoring
+- MQTT cloud publishing
+- graceful shutdown handling
+- MQTT reconnect support
+
+### Cloud Integration
+
+- HiveMQ Cloud MQTT broker
+- MQTT telemetry publishing
+- Node-RED dashboard visualization
+- real-time telemetry monitoring
+
+---
+
+## Key Engineering Highlights
+
+- Custom Linux UART character device driver
+- RTOS-to-Linux hybrid telemetry architecture
+- CRC16-based telemetry integrity validation
+- asynchronous poll/select driver support
+- kfifo-based producer-consumer buffering
+- wait queue synchronization
+- UART stream reassembly and frame synchronization
+- MQTT cloud telemetry integration
+- Node-RED real-time telemetry dashboard
+- graceful driver shutdown and recovery handling
+
+---
+
+## Hardware Used
 
 | Component | Purpose |
 |---|---|
@@ -86,7 +166,7 @@ Cloud Dashboard
 
 ---
 
-# UART Telemetry Protocol
+## UART Telemetry Protocol
 
 Example telemetry frame:
 
@@ -94,7 +174,20 @@ Example telemetry frame:
 <T:30.12,I:0.02,V:0.99,P:0.02,M:0>*5BD7
 ```
 
-Protocol Features:
+### Frame Structure
+
+```text
+<sensor_payload>*CRC
+```
+
+### Example
+
+```text
+<T:30.12,I:0.02,V:0.99,P:0.02,M:0>*5BD7
+```
+
+### Protocol Features
+
 - framed UART packets
 - configurable integrity modes
 - CRC16 / CRC8 / checksum support
@@ -105,30 +198,7 @@ Protocol Features:
 
 ---
 
-# Linux Driver Features
-
-- Character device driver
-- kfifo buffering
-- wait queues
-- poll/select support
-- asynchronous event-driven I/O
-- modular telemetry architecture
-- modular CRC validation framework
-- CRC16 telemetry validation
-- CRC8 validation support
-- checksum validation mode
-- configurable integrity framework
-- validated telemetry-only buffering
-- UART stream accumulation handling
-- fragmented frame recovery
-- stream-oriented telemetry parsing
-- producer-consumer telemetry buffering model
-
----
-
-# Current Linux Driver Runtime Pipeline
-
-Current implemented Linux telemetry flow:
+## Linux Driver Runtime Pipeline
 
 ```text
 ESP32 UART Stream
@@ -146,7 +216,7 @@ Character Device (/dev/iot_uart)
 User-space Reader
 ```
 
-Example runtime telemetry:
+### Example Runtime Telemetry
 
 ```text
 <T:36.00,I:0.02,V:0.96,P:0.02,M:0>*8BEC
@@ -154,9 +224,10 @@ Example runtime telemetry:
 
 ---
 
-# Current Project Status
+## Current Project Status
 
-## Completed
+### Completed
+
 - ESP32 RTOS telemetry framework
 - UART communication validation
 - Raspberry Pi UART configuration
@@ -167,7 +238,7 @@ Example runtime telemetry:
 - poll/select support
 - blocking/non-blocking reads
 - safe module unload handling
-- poll/select-based asynchronous I/O
+- asynchronous I/O support
 - hardware telemetry validation
 - UART hardware configuration validation
 - verified ESP32 ↔ Raspberry Pi telemetry streaming
@@ -176,15 +247,12 @@ Example runtime telemetry:
 - user-space telemetry service
 - kernel-to-user telemetry pipeline
 - live telemetry frame consumption
-
-
-## In Progress
-- MQTT cloud integration
-- telemetry dashboard visualization
+- HiveMQ MQTT integration
+- Node-RED dashboard integration
 
 ---
 
-# Current Runtime Validation
+## Current Runtime Validation
 
 - CRC16 telemetry validation fully operational
 - stream-based UART frame synchronization implemented
@@ -195,7 +263,7 @@ Example runtime telemetry:
 
 ---
 
-# Engineering Challenges Solved
+## Engineering Challenges Solved
 
 - UART stream fragmentation handling
 - partial frame reconstruction
@@ -204,22 +272,35 @@ Example runtime telemetry:
 - blocking vs non-blocking synchronization
 - UART raw mode stabilization
 - safe kernel thread termination
+- graceful driver unload handling
 
 ---
 
-# Demo Execution
+## Build Instructions
 
-Automated demo startup script:
+### Build Linux Driver
 
 ```bash
-./scripts/start_demo.sh
+cd kernel_driver
+make
 ```
-Actual demo path:
 
-```md
+### Build User-space Application
+
+```bash
+cd user_space
+make
+```
+
+---
+
+## Running the Platform
+
 Run from project root:
 
 ```bash
+chmod +x scripts/start_demo.sh
+
 ./scripts/start_demo.sh
 ```
 
@@ -227,8 +308,29 @@ The script automatically:
 
 - configures UART raw mode
 - reloads kernel driver
-- starts telemetry streaming
-- displays validated telemetry frames
+- starts telemetry service
+- starts Node-RED dashboard
+- initializes MQTT telemetry pipeline
+
+---
+
+## Node-RED Dashboard
+
+Dashboard URL:
+
+```text
+http://<RPI_IP>:1880/ui
+```
+
+---
+
+## Demo Execution
+
+Automated demo startup:
+
+```bash
+./scripts/start_demo.sh
+```
 
 Example runtime output:
 
@@ -238,16 +340,23 @@ Example runtime output:
 
 ---
 
-# Screenshots
+## Screenshots
 
-- ESP32 telemetry transmission
-- Linux driver runtime logs
-- validated telemetry stream
-- MQTT telemetry publishing
+### Node-RED Dashboard
+![dashboard](screenshots/dashboard.png)
+
+### Linux Driver Runtime Logs
+![driver_logs](screenshots/driver_logs.png)
+
+### MQTT Telemetry Publishing
+![mqtt](screenshots/mqtt_publish.png)
+
+### Hardware Setup
+![hardware](screenshots/hardware_setup.png)
 
 ---
 
-# Repository Structure
+## Repository Structure
 
 ```text
 hybrid_iot_platform/
@@ -258,28 +367,33 @@ hybrid_iot_platform/
 │   │   ├── crc8.c
 │   │   ├── integrity.h
 │   │   └── validator.c
+│   ├── parser
+│   │   ├── frame_parser.c
+│   │   └── frame_parser.h
 │   ├── iot_uart_driver_main.c
-│   ├── Makefile
-│   └── parser
-│       ├── frame_parser.c
-│       └── frame_parser.h
-├── README.md
+│   └── Makefile
+│
 ├── scripts
 │   └── start_demo.sh
-└── user_space
-    ├── Makefile
-    ├── telemetry_service
-    └── telemetry_service.c
+│
+├── user_space
+│   ├── Makefile
+│   └── telemetry_service.c
+│
+├── screenshots
+│
+└── README.md
 ```
 
 ---
 
-# Author
+## Author
 
-Vishwajit Kumar Tiwari
-
+Vishwajit Kumar Tiwari  
 M.Tech – Embedded Systems  
 BITS Pilani WILP
 
-LinkedIn: [Vishwajit Kumar Tiwari](https://www.linkedin.com/in/vishwajit-tiwari/)
-GitHub: [github.com/vishwajit-tiwari](https://github.com/vishwajit-tiwari)
+### Connect
+
+- LinkedIn: [Vishwajit Kumar Tiwari](https://www.linkedin.com/in/vishwajit-tiwari/)
+- GitHub: [vishwajit-tiwari](https://github.com/vishwajit-tiwari)

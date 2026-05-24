@@ -96,6 +96,13 @@ static dev_t dev_num;
 static struct cdev iot_cdev;
 static struct class *iot_class;
 
+// Flag to indicate if the driver is shutting down
+static bool driver_shutting_down = false;
+
+static unsigned long valid_frames;
+static unsigned long crc_failures;
+static unsigned long fifo_overflows;
+
 // Thread and file pointer for UART communication
 static struct task_struct *uart_thread;
 static struct file *uart_filp;
@@ -162,11 +169,22 @@ static ssize_t iot_read(struct file *file, char __user *buf, size_t len,
       return -EAGAIN;
     }
   } else {
+    if (driver_shutting_down) {
+      return -EIO;
+    }
+
     // Blocking mode - wait until data is available
-    wait_event_interruptible(iot_wait_queue, !kfifo_is_empty(&iot_fifo));
+    wait_event_interruptible(iot_wait_queue, !kfifo_is_empty(&iot_fifo) ||
+                                                 driver_shutting_down);
+
+    if (driver_shutting_down) {
+      return -EIO;
+    }
   }
 
-  mutex_lock(&iot_mutex);
+  if (mutex_lock_interruptible(&iot_mutex)) {
+    return -ERESTARTSYS;
+  }
 
   bytes_to_read =
         min_t(unsigned int,
@@ -208,7 +226,9 @@ static ssize_t iot_write(struct file *file, const char __user *buf, size_t len,
     return -EFAULT;
   }
 
-  mutex_lock(&iot_mutex);
+  if (mutex_lock_interruptible(&iot_mutex)) {
+    return -ERESTARTSYS;
+  }
 
   if (kfifo_avail(&iot_fifo) < len) {
     mutex_unlock(&iot_mutex);
@@ -269,8 +289,7 @@ static int uart_rx_thread(void *data) {
 
   pr_info("iot_uart: opened %s\n", UART_DEVICE);
 
-  while (!kthread_should_stop()) 
-  {
+  while (!kthread_should_stop() && !driver_shutting_down) {
     memset(rx_buf, 0, sizeof(rx_buf));
     memset(parsed_frame, 0, sizeof(parsed_frame));
 
@@ -279,9 +298,19 @@ static int uart_rx_thread(void *data) {
 
     if (bytes_read > 0) 
     {
-      memcpy(stream_buffer + stream_len, rx_buf, bytes_read);
-      stream_len += bytes_read;
-      stream_buffer[stream_len] = '\0';
+      if ((stream_len + bytes_read) < STREAM_BUFFER_SIZE) {
+        memcpy(stream_buffer + stream_len, rx_buf, bytes_read);
+
+        stream_len += bytes_read;
+
+        stream_buffer[stream_len] = '\0';
+      } else {
+        pr_err("iot_uart: stream buffer overflow\n");
+
+        memset(stream_buffer, 0, sizeof(stream_buffer));
+
+        stream_len = 0;
+      }
 
       pr_info("iot_uart: RX raw stream: %s\n", stream_buffer);
 
@@ -289,6 +318,8 @@ static int uart_rx_thread(void *data) {
       {
         if (validate_uart_frame(parsed_frame)) 
         {
+          valid_frames++; // Increment valid frame count
+
           memset(stream_buffer, 0, sizeof(stream_buffer));
           stream_len = 0;
 
@@ -306,6 +337,7 @@ static int uart_rx_thread(void *data) {
           } 
           else 
           {
+            fifo_overflows++; // Increment FIFO overflow count
             pr_err("iot_uart: FIFO full dropping frame\n");
           }
 
@@ -313,6 +345,7 @@ static int uart_rx_thread(void *data) {
         } 
         else 
         {
+          crc_failures++; // Increment CRC failure count
           pr_err("iot_uart: CRC validation failed dropping frame\n");
         }
       } 
@@ -414,6 +447,14 @@ static int __init iot_driver_init(void) {
 
 // Module exit function - called when the module is unloaded
 static void __exit iot_driver_exit(void) {
+  pr_info("iot_uart: shutting down driver\n");
+
+  // Set the shutdown flag
+  driver_shutting_down = true;
+
+  // Wake up any processes waiting on the read queue
+  wake_up_interruptible(&iot_wait_queue);
+
   // Stop the UART receive thread
   if (uart_thread) {
     kthread_stop(uart_thread);
@@ -426,7 +467,15 @@ static void __exit iot_driver_exit(void) {
 
   mutex_destroy(&iot_mutex); // Destroy the mutex
 
-  pr_info("iot_uart: driver unloaded\n");
+  pr_info("iot_uart: statistics\n");
+
+  pr_info("valid_frames=%lu\n", valid_frames);
+
+  pr_info("crc_failures=%lu\n", crc_failures);
+
+  pr_info("fifo_overflows=%lu\n", fifo_overflows);
+
+  pr_info("iot_uart: driver unloaded safely\n");
 }
 
 module_init(iot_driver_init);
