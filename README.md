@@ -60,7 +60,6 @@ Cloud Dashboard
 - modular parser architecture
 
 ## Planned Linux-side Features
-- CRC8 / CRC16 / checksum validation
 - user-space telemetry service
 - MQTT cloud publishing
 - telemetry dashboard visualization
@@ -94,6 +93,8 @@ Protocol Features:
 - CRC16 / CRC8 / checksum support
 - stream synchronization
 - packet validation
+- CRC16-CCITT integrity validation
+- cross-platform Linux/ESP32 CRC compatibility
 
 ---
 
@@ -105,6 +106,15 @@ Protocol Features:
 - poll/select support
 - asynchronous event-driven I/O
 - modular telemetry architecture
+- modular CRC validation framework
+- CRC16 telemetry validation
+- CRC8 validation support
+- checksum validation mode
+- configurable integrity framework
+- validated telemetry-only buffering
+- UART stream accumulation handling
+- fragmented frame recovery
+- stream-oriented telemetry parsing
 
 ---
 
@@ -149,12 +159,50 @@ Example runtime telemetry:
 - safe module unload handling
 - non-blocking UART polling
 - hardware telemetry validation
+- UART hardware configuration validation
+- verified ESP32 ↔ Raspberry Pi telemetry streaming
+- CRC16 telemetry integrity verification
+- live framed telemetry reception over ttyAMA0
+
+## Current progress
+- CRC16 telemetry validation fully operational
+- stream-based UART frame synchronization implemented
+- validated telemetry buffering pipeline operational
+- real-time ESP32 → Linux telemetry reception verified
+- FIFO overflow handling implemented
 
 ## In Progress
-- CRC validation framework
 - user-space telemetry service
 - MQTT cloud integration
 - telemetry dashboard visualization
+
+---
+
+# Demo Execution
+
+Automated demo startup script:
+
+```bash
+./scripts/start_demo.sh
+```
+Actual demo path:
+
+```bash
+hybrid_iot_platform/scripts/start_demo.sh
+```
+
+The script automatically:
+
+- configures UART raw mode
+- reloads kernel driver
+- starts telemetry streaming
+- displays validated telemetry frames
+
+Example runtime output:
+
+```text
+<T:30.81,I:0.01,V:0.97,P:0.01,M:0>*606C
+```
 
 ---
 

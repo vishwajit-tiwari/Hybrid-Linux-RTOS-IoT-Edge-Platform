@@ -75,6 +75,7 @@
 #include <linux/file.h>
 #include <linux/kthread.h>
 
+#include "crc/integrity.h"
 #include "parser/frame_parser.h"
 
 /// Device information
@@ -88,6 +89,7 @@
 // setup)
 #define UART_DEVICE "/dev/ttyAMA0"
 #define UART_BUFFER_SIZE 128
+#define STREAM_BUFFER_SIZE 512
 
 /// Global variables for device management
 static dev_t dev_num;
@@ -250,10 +252,13 @@ static int uart_rx_thread(void *data) {
   char parsed_frame[FRAME_MAX_SIZE];
   int bytes_read;
 
+  static char stream_buffer[STREAM_BUFFER_SIZE];
+  static int stream_len = 0;
+
   pr_info("iot_uart: UART RX thread started\n");
 
   // Open ttyAMA0 for reading
-  uart_filp = filp_open(UART_DEVICE, O_RDONLY | O_NONBLOCK, 0);
+  uart_filp = filp_open(UART_DEVICE, O_RDONLY, 0);
 
   if (IS_ERR(uart_filp)) 
   {
@@ -269,33 +274,47 @@ static int uart_rx_thread(void *data) {
     memset(rx_buf, 0, sizeof(rx_buf));
     memset(parsed_frame, 0, sizeof(parsed_frame));
 
-    bytes_read = kernel_read(uart_filp, rx_buf, sizeof(rx_buf) - 1, &uart_filp->f_pos);
+    bytes_read = kernel_read(uart_filp, rx_buf, sizeof(rx_buf) - 1, NULL);
+    pr_info("iot_uart: kernel_read returned %d bytes\n", bytes_read);
 
     if (bytes_read > 0) 
     {
-        rx_buf[bytes_read] = '\0';
-        pr_info("iot_uart: RX raw stream: %s\n", rx_buf);
+      memcpy(stream_buffer + stream_len, rx_buf, bytes_read);
+      stream_len += bytes_read;
+      stream_buffer[stream_len] = '\0';
 
-      if (parse_uart_stream(rx_buf, bytes_read, parsed_frame)) 
+      pr_info("iot_uart: RX raw stream: %s\n", stream_buffer);
+
+      if (parse_uart_stream(stream_buffer, stream_len, parsed_frame)) 
       {
-        mutex_lock(&iot_mutex);
-
-        size_t frame_len = strnlen(parsed_frame, FRAME_MAX_SIZE);
-
-        if (kfifo_avail(&iot_fifo) >= frame_len) 
+        if (validate_uart_frame(parsed_frame)) 
         {
-          kfifo_in(&iot_fifo, parsed_frame, frame_len);
+          memset(stream_buffer, 0, sizeof(stream_buffer));
+          stream_len = 0;
 
-          wake_up_interruptible(&iot_wait_queue);
+          mutex_lock(&iot_mutex);
 
-          pr_info("iot_uart: validated frame buffered: %s\n", parsed_frame);
+          size_t frame_len = strnlen(parsed_frame, FRAME_MAX_SIZE);
+
+          if (kfifo_avail(&iot_fifo) >= frame_len) 
+          {
+            kfifo_in(&iot_fifo, parsed_frame, frame_len);
+
+            wake_up_interruptible(&iot_wait_queue);
+
+            pr_info("iot_uart: validated frame buffered: %s\n", parsed_frame);
+          } 
+          else 
+          {
+            pr_err("iot_uart: FIFO full dropping frame\n");
+          }
+
+          mutex_unlock(&iot_mutex);
         } 
         else 
         {
-          pr_err("iot_uart: FIFO full dropping frame\n");
+          pr_err("iot_uart: CRC validation failed dropping frame\n");
         }
-
-        mutex_unlock(&iot_mutex);
       } 
       else 
       {
