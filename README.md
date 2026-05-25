@@ -340,19 +340,49 @@ Example runtime output:
 
 ---
 
-## Screenshots
+# Screenshots
 
-### Node-RED Dashboard
-![dashboard](screenshots/dashboard.png)
+## Hardware Setup
 
-### Linux Driver Runtime Logs
-![driver_logs](screenshots/driver_logs.png)
+![Hardware Setup](screenshots/hardware_setup.jpeg)
 
-### MQTT Telemetry Publishing
-![mqtt](screenshots/mqtt_publish.png)
+---
 
-### Hardware Setup
-![hardware](screenshots/hardware_setup.png)
+## ESP32 Runtime (UART Telemetry Transmission)
+
+![ESP32 UART Runtime](screenshots/esp32_uart_runtime.png)
+
+---
+
+## Linux Telemetry Runtime
+
+![Linux Telemetry Runtime](screenshots/linux_telemetry_runtime.png)
+
+---
+
+## Node-RED Flow
+
+![Node-RED Flow](screenshots/node_red_flow.png)
+
+---
+
+## Real-Time Dashboard UI
+
+![Dashboard UI](screenshots/dashboard_ui.png)
+
+---
+
+# Demo Videos
+
+## End-to-End System Demonstration
+
+[▶ Watch End-to-End Demo](demo_videos/end_to_end_demo.mp4)
+
+---
+
+## Hardware Demonstration
+
+[▶ Watch Hardware Demo](demo_videos/hardware_demo.mp4)
 
 ---
 
