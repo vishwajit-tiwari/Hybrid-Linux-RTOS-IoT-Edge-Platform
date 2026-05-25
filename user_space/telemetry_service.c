@@ -48,8 +48,18 @@ int reconnect_mqtt(MQTTClient client, MQTTClient_connectOptions *conn_opts) {
 int main()
 {
   int fd;
+
   char buffer[BUFFER_SIZE];
+  char json_buffer[BUFFER_SIZE];
+
   ssize_t bytes_read;
+
+  float temperature;
+  float current;
+  float voltage;
+  float power;
+
+  int motion;
 
   // MQTT Client setup
   MQTTClient client;
@@ -107,6 +117,25 @@ int main()
 
         printf("Telemetry Frame: %s", buffer);
 
+        if (sscanf(buffer, "<T:%f,I:%f,V:%f,P:%f,M:%d>", &temperature, &current,
+                   &voltage, &power, &motion) != 5) {
+          printf("Telemetry parse failed\n");
+
+          continue;
+        }
+
+        snprintf(json_buffer, sizeof(json_buffer),
+                 "{"
+                 "\"temperature\": %.2f,"
+                 "\"current\": %.2f,"
+                 "\"voltage\": %.2f,"
+                 "\"power\": %.2f,"
+                 "\"motion\": %d"
+                 "}",
+                 temperature, current, voltage, power, motion);
+
+        printf("JSON Payload: %s\n", json_buffer);
+
         if (!MQTTClient_isConnected(client)) {
           printf("MQTT disconnected\n");
 
@@ -120,8 +149,8 @@ int main()
         MQTTClient_deliveryToken token;
 
         // Set the MQTT message properties
-        pubmsg.payload = buffer;
-        pubmsg.payloadlen = strlen(buffer);
+        pubmsg.payload = json_buffer;
+        pubmsg.payloadlen = strlen(json_buffer);
         pubmsg.qos = QOS;
         pubmsg.retained = 0;
 
